@@ -1,2 +1,3 @@
 # FMI-Weekly-Schedule-Helper
-Project repo for the "Introduction to programming in Python" course of the Faculty of Mathematics and Informatics, Sofia University.
+Project repo for the "Introduction to programming in Python" course of the Faculty of Mathematics and Informatics, Sofia University. 
+The idea of the project is to help students with selecting a weekly schedule by parsing the giant pool of available subjects into a formatable one, which could be appliable to each student and his personal interests/needs. The current version of the project is focused on making a desktop application and I plan to transform it in the future into a server-user, where ratings and comments will be stored in a database and not only in the user's personal computer.
