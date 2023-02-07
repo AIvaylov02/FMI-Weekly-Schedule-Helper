@@ -1,3 +1,4 @@
+import rating
 SubjectGroup = ('COMPULSORY',  # They are given by the learning plan automatically
                 'REQUIRED_CHOSEN',  # The so-called ZIP (You need to choose these subjects)
                 # Below are only subject categories you can freely choose without constrain
@@ -16,6 +17,7 @@ LectureType = ('L',  # Lecture
 
 Days = 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 
+Faculty = ('FHF', 'FMI', 'FZF')
 
 def is_valid_subject_name(name):
     if name is None:
@@ -90,51 +92,144 @@ class InvalidWorkHour(InvalidInput):
     pass
 
 
+class InvalidPlace(InvalidInput):
+    pass
+
 class InvalidRating(InvalidInput):
     pass
 
 
 class Subject:
-    def __init__(self, name, group, lecturer, ECTS_credits, lecture_type, studied_days, start_hour, end_hour, room,
-                 rating=None, reviews=None):
+
+    def __parse_raw_place(self, raw_place):
+        faculty = raw_place[:3]
+        if faculty not in Faculty:
+            raise InvalidPlace
+        if raw_place[3] != '-':
+            raise InvalidPlace
+        room = raw_place[4:]
+        if not room.isdigit():
+            raise InvalidPlace
+        return faculty, room
+
+    def __validate_study_times(self, study_times):
+        # study_times is dict consisting pairs : string(day)-tuple(start_hour, end_hour)
+        for day in study_times:
+            if day not in Days:
+                raise InvalidWeekday
+            start_hour, end_hour = study_times[day]
+            if start_hour < 7 or start_hour > 22:
+                raise InvalidWorkHour
+            if end_hour < 7 or end_hour > 24 or end_hour <= start_hour or end_hour - start_hour > 5:
+                raise InvalidWorkHour
+
+    def __init__(self, name, group, lecturer, ECTS_credits, lecture_type, study_times, raw_place, ratings=None, reviews=None):
         if is_valid_subject_name(name):
-            self.name = name
+            self.__name = name
         else:
             raise InvalidSubjectName
+        self.set_subject_group(group)
+        self.set_lecturer(lecturer)
+        self.set_ECTS_credits(ECTS_credits)
+        self.set_lecture_type(lecture_type)
+        self.set_study_times(study_times)
+        self.__faculty, self.__room = self.__parse_raw_place(raw_place)
+        self.__subj_rating = rating.Rating(ratings)
+        if self.__subj_rating.get_average_rating() < 1 or self.__subj_rating.get_average_rating() > 10:
+            raise InvalidRating
+        self.__reviews = reviews
+
+    def get_subject_name(self):
+        return self.__name
+
+    def get_subject_group(self):
+        return self.__group
+
+    def get_lecturer(self):
+        return self.__lecturer
+
+    def get_ECTS_credits(self):
+        return self.__ECTS_credits
+
+    def get_lecture_type(self):
+        return self.__lecture_type
+
+    def get_study_times(self):
+        return self.__study_times
+
+    def get_faculty(self):
+        return self.__faculty
+
+    def get_room(self):
+        return self.__room
+
+    def get_subject_rating(self):
+        return self.__subj_rating
+
+    def get_reviews(self):
+        return self.__reviews
+
+    def set_subject_group(self, group):
         if group in SubjectGroup:
-            self.grop = group
+            self.__group = group
         else:
             raise InvalidSubjectGroup
+
+    def set_lecturer(self, lecturer):
         if is_valid_person_name(lecturer):
-            self.lecturer = lecturer
+            self.__lecturer = lecturer
         else:
             raise InvalidPersonName
+
+    def set_ECTS_credits(self, ECTS_credits):
         if 0 < ECTS_credits <= 10:
-            self.ECTS_credits = ECTS_credits
+            self.__ECTS_credits = ECTS_credits
         else:
             raise InvalidECTSCredits
+
+    def set_lecture_type(self, lecture_type):
         if lecture_type in LectureType:
-            self.lecture_type = lecture_type
+            self.__lecture_type = lecture_type
         else:
             raise InvalidLectureType
-        if are_valid_days(studied_days):
-            self.studied_days = studied_days
-        else:
-            raise InvalidWeekday
-        if 7 <= start_hour <= 22:
-            self.start_hour = start_hour
-        else:
-            raise InvalidWorkHour
-        # One lecture should be at least 1 hour and not more than 5 hours max
-        if 7 <= end_hour <= 24 and end_hour > start_hour and end_hour - start_hour <= 5:
-            self.end_hour = end_hour
-        else:
-            raise InvalidWorkHour
-        self.room = room  # You could study from anywhere, so there are no restrictions here
-        if 1 <= rating <= 10:
-            self.rating = rating
-        else:
-            raise InvalidRating
-        self.reviews = reviews
 
-# my_hour = Subject('algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5, 'L', 'Monday', 16, 19, 210, 10, 'Mnogo e pich, toq Tabakov be :)')
+    def set_study_times(self, new_study_times):
+        self.__validate_study_times(new_study_times)
+        self.__study_times = new_study_times
+
+    def add_new_study_time(self, day, start_hour, end_hour):
+        if day not in Days:
+            raise InvalidWeekday
+        if start_hour < 7 or start_hour > 22:
+            raise InvalidWorkHour
+        if end_hour < 7 or end_hour > 24 or end_hour < start_hour or end_hour - start_hour > 5:
+            raise InvalidWorkHour
+        self.__study_times[day] = start_hour, end_hour
+
+    def remove_study_time_by_day(self, day):
+        if day not in Days or day not in self.__study_times:
+            raise InvalidWeekday
+        self.__study_times.pop(day)
+
+    def set_faculty(self, faculty_short):
+        if faculty_short not in Faculty:
+            raise InvalidPlace
+        self.__faculty = faculty_short
+
+    def set_room(self, new_room):
+        if not new_room.isdigit():
+            raise InvalidPlace
+        self.__room = new_room
+
+    def add_subject_score(self, score):
+        self.__subj_rating.add_score(score)
+
+    def add_review(self, review):
+        if self.__reviews is None:
+            self.__reviews = []
+        self.__reviews.append(review)
+
+
+""" TODO : We are ready to implement reading and writing from/to files here. Maybe after implementing class 
+Timetable and Study_Plan, we should do this. For know we should focus on those 2 other classes as well as class User, who
+should be trivial. GUI also remains to be done."""
