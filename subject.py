@@ -2,7 +2,7 @@ import rating
 SubjectGroup = ('COMPULSORY',  # They are given by the learning plan automatically
                 'REQUIRED_CHOSEN',  # The so-called ZIP (You need to choose these subjects)
                 # Below are only subject categories you can freely choose without constrain
-                'MATH',
+                'PURE_MATH',
                 'APM',  # Applied Math
                 'CSF',  # Computer Science Fundamentals
                 'CSC',  # Computer Science Core
@@ -18,6 +18,7 @@ LectureType = ('L',  # Lecture
 Days = 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 
 Faculty = ('FHF', 'FMI', 'FZF')
+
 
 def is_valid_subject_name(name):
     if name is None:
@@ -47,7 +48,7 @@ def is_valid_person_name(name):
                 white_space_found = True
             elif not curr_char.islower():  # All other symbols should be lowercase
                 return False
-        if white_space_found == False or second_capital_found == False:
+        if white_space_found is False or second_capital_found is False:
             return False
         else:
             return True
@@ -95,12 +96,16 @@ class InvalidWorkHour(InvalidInput):
 class InvalidPlace(InvalidInput):
     pass
 
+
 class InvalidRating(InvalidInput):
     pass
 
 
-class Subject:
+class InvalidSpeciality(InvalidInput):
+    pass
 
+
+class Subject:
     def __parse_raw_place(self, raw_place):
         faculty = raw_place[:3]
         if faculty not in Faculty:
@@ -123,21 +128,35 @@ class Subject:
             if end_hour < 7 or end_hour > 24 or end_hour <= start_hour or end_hour - start_hour > 5:
                 raise InvalidWorkHour
 
-    def __init__(self, name, group, lecturer, ECTS_credits, lecture_type, study_times, raw_place, ratings=None, reviews=None):
+    def __init__(self, name, group, lecturer, ECTS_credits, lecture_type, study_times, raw_place,
+                 can_be_signed_up_by_table, ratings=None, reviews=None):
         if is_valid_subject_name(name):
             self.__name = name
         else:
             raise InvalidSubjectName
+        self.__group = None
         self.set_subject_group(group)
+        self.__lecturer = None
         self.set_lecturer(lecturer)
+        self.__ECTS_credits = None
         self.set_ECTS_credits(ECTS_credits)
+        self.__lecture_type = None
         self.set_lecture_type(lecture_type)
+        self.__study_times = None
         self.set_study_times(study_times)
         self.__faculty, self.__room = self.__parse_raw_place(raw_place)
         self.__subj_rating = rating.Rating(ratings)
         if self.__subj_rating.get_average_rating() < 1 or self.__subj_rating.get_average_rating() > 10:
             raise InvalidRating
-        self.__reviews = reviews
+        self.__can_be_signed_up_by_table = {}
+        self.set_signing_up_table(can_be_signed_up_by_table)
+        self.__reviews = []
+        if reviews is not None:
+            if reviews is list:
+                for review in reviews:
+                    self.add_review(review)
+            else:
+                self.add_review(reviews)
 
     def get_subject_name(self):
         return self.__name
@@ -165,6 +184,9 @@ class Subject:
 
     def get_subject_rating(self):
         return self.__subj_rating
+
+    def get_signing_up_table(self):
+        return self.__can_be_signed_up_by_table
 
     def get_reviews(self):
         return self.__reviews
@@ -224,6 +246,29 @@ class Subject:
     def add_subject_score(self, score):
         self.__subj_rating.add_score(score)
 
+    def set_signing_up_table(self, sign_up_table):  # Set up the whole allowing table
+        self.__can_be_signed_up_by_table = {'SI': 1, 'IS': 1, 'KN': 1}
+        if sign_up_table is not None:
+            self.__can_be_signed_up_by_table = {}
+            for key, value in sign_up_table.items():
+                if key == 'ALL':  # all specialities will have this course
+                    for speciality in ('SI', 'IS', 'KN'):
+                        self.__can_be_signed_up_by_table[speciality] = value
+                else:
+                    self.change_speciality_course_of_signing_up_table(key, value)
+
+    def change_speciality_course_of_signing_up_table(self, speciality, course):  # Changes the requirements of a group
+        if speciality in ('SI', 'IS', 'KN') and course in range(1, 5):
+            self.__can_be_signed_up_by_table[speciality] = course
+        else:
+            raise InvalidSpeciality
+
+    def remove_speciality_from_signing_up_table(self, speciality):
+        if speciality in ('SI', 'IS', 'KN'):
+            self.__can_be_signed_up_by_table.pop(speciality)
+        else:
+            raise InvalidSpeciality
+
     def add_review(self, review):
         if self.__reviews is None:
             self.__reviews = []
@@ -231,5 +276,5 @@ class Subject:
 
 
 """ TODO : We are ready to implement reading and writing from/to files here. Maybe after implementing class 
-Timetable and Study_Plan, we should do this. For know we should focus on those 2 other classes as well as class User, who
-should be trivial. GUI also remains to be done."""
+Timetable and Study_Plan, we should do this. For know we should focus on those 2 other classes as well as class User,
+who should be trivial. GUI also remains to be done."""
