@@ -11,8 +11,8 @@ class SelectableSubjects:
         for key, value in freely_chosen_subjects_table.items():
             self.__freely_chosen_subjects_categories[key] = value
         self.__left_credits = min_credits_needed
-        self.__person_finished_subjects = {}  # Dict of subjects<string>/credits<doubles> the person has finished
-        if person_finished_subjects is not None:  # Maybe it wouldn't be a dict
+        self.__person_finished_subjects = {}  # Dict of subjects<string>/tuple<category<str>,credits<doubles>> the person has finished
+        if person_finished_subjects is not None:
             self.__person_finished_subjects = person_finished_subjects
 
     def __transfer_category_point(self, child_category, parent_category):
@@ -117,42 +117,67 @@ DefaultRegularPlan_KN = (
 )
 
 
-# todo maybe change the tuple of tuples into tuple of dicts, of key = <string>name and value = <double> ECTS credits from this subject
 class StudyPlan:
-    def __init__(self, speciality, semester, taken_subjects=None):
+    def __init__(self, speciality, semester, taken_regular_subjects=None, freely_chosen_subjects_table=None,
+                 min_credits_needed=None, taken_free_subjects=None):
         self.__speciality = speciality
         if speciality == 'Software Engineering':
             self.__planned_regular_all = DefaultRegularPlan_SI
-            self.__planned_additional = SelectableSubjects(('Operations Research', 'Numerical Analysis'),
-                                                           {'CSF': 1, 'CSC': 1,
-                                                            'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0, 'MATH': 2,
-                                                            'REQUIRED_CHOSEN': 1, 'FREELY': 1}, 62)
+            if freely_chosen_subjects_table is None:
+                self.__planned_additional = SelectableSubjects(('Operations Research', 'Numerical Analysis'),
+                                                               {'CSF': 1, 'CSC': 1,
+                                                                'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
+                                                                'MATH': 2,
+                                                                'REQUIRED_CHOSEN': 1, 'FREELY': 1}, 62)
+            else:
+                self.__planned_additional = SelectableSubjects(('Operations Research', 'Numerical Analysis'),
+                                                               freely_chosen_subjects_table, min_credits_needed,
+                                                               taken_free_subjects)
+
         elif speciality == 'Information Systems':
             self.__planned_regular_all = DefaultRegularPlan_IS
-            self.__planned_additional = SelectableSubjects(('Differential equations', 'Operations Research',
-                                                            'Numerical Analysis', 'Algebra 2'),
-                                                           {'CSF': 2, 'CSC': 2, 'COMP': 2, 'CSP': 3, 'PURE_MATH': 0,
-                                                            'APM': 0,
-                                                            'MATH': 3, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}, 68)
+            if freely_chosen_subjects_table is None:
+                self.__planned_additional = SelectableSubjects(('Differential equations', 'Operations Research',
+                                                                'Numerical Analysis', 'Algebra 2'),
+                                                               {'CSF': 2, 'CSC': 2, 'COMP': 2, 'CSP': 3, 'PURE_MATH': 0,
+                                                                'APM': 0,
+                                                                'MATH': 3, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}, 68)
+            else:
+                self.__planned_additional = SelectableSubjects(('Differential equations', 'Operations Research',
+                                                                'Numerical Analysis', 'Algebra 2'),
+                                                               freely_chosen_subjects_table, min_credits_needed,
+                                                               taken_free_subjects)
         elif speciality == 'Computer science':
             self.__planned_regular_all = DefaultRegularPlan_KN
-            self.__planned_additional = SelectableSubjects(('Programming languages semantics',
-                                                            'Computability and complexity', 'Set theory'),
-                                                           {'CSF': 3, 'CSC': 3, 'COMP': 0, 'CSP': 2, 'PURE_MATH': 0,
-                                                            'APM': 0, 'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 0},
-                                                           55.5)
+            if freely_chosen_subjects_table is None:
+                self.__planned_additional = SelectableSubjects(('Programming languages semantics',
+                                                                'Computability and complexity', 'Set theory'),
+                                                               {'CSF': 3, 'CSC': 3, 'COMP': 0, 'CSP': 2, 'PURE_MATH': 0,
+                                                                'APM': 0, 'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 0},
+                                                               55.5)
+            else:
+                self.__planned_additional = SelectableSubjects(('Programming languages semantics',
+                                                                'Computability and complexity', 'Set theory'),
+                                                               freely_chosen_subjects_table, min_credits_needed,
+                                                               taken_free_subjects)
         else:
             raise subject.InvalidSpeciality
 
         self.__semester = semester
-        self.__taken_regular_subjects = taken_subjects
-        self.__subjects_left = []
+        self.__taken_regular_subjects = []
+        if taken_regular_subjects is not None:
+            self.__taken_regular_subjects = taken_regular_subjects
+        self.__regular_subjects_left = []  # List of compulsory subjects left to be taken
+        if semester > len(self.__planned_regular_all) or semester < 0:
+            raise subject.InvalidSpeciality
+
         for curr_semester in range(semester):
-            for curr_subject in self.__planned_regular_all[curr_semester]:
-                try:
-                    self.__taken_regular_subjects.index(curr_subject)
-                except ValueError or TypeError:  # The subject is not present in the taken subjects category or the list is empty
-                    self.__subjects_left.append(curr_subject)
+            curr_semester_subjects = self.__planned_regular_all[curr_semester]
+            for curr_subject in curr_semester_subjects:
+                self.__regular_subjects_left.append(curr_subject)
+        self.__util_remove_duplicate_subjects(self.__taken_regular_subjects)
+        for finished_subj in self.__taken_regular_subjects:
+            self.__util_finish_subject(finished_subj)
 
     def get_speciality(self):
         return self.__speciality
@@ -160,24 +185,56 @@ class StudyPlan:
     def get_semester(self):
         return self.__semester
 
+    def get_additional(self):
+        return self.__planned_additional
+
     def advance_semester(self):
         self.__semester += 1
-        for curr_subject in self.__planned_regular_all[self.__semester]:
-            self.__subjects_left.append(curr_subject)
+        if self.__semester <= len(self.__planned_regular_all):
+            for curr_subject in self.__planned_regular_all[self.__semester - 1]:
+                self.__regular_subjects_left.append(curr_subject)
 
     def taken_subjects(self):
         return self.__taken_regular_subjects
 
+    def left_subjects(self):
+        return self.__regular_subjects_left
+
+    def __util_remove_duplicate_subjects(self, collection):
+        for element in collection:
+            while collection.count(element) > 1:
+                collection.remove(element)
+
+    def __util_finish_subject(self,
+                              subj):  # We keep in files the str type of file, we keep the dict categories and credits
+        if type(subj) is str:
+            try:
+                self.__regular_subjects_left.index(subj)
+            except ValueError:  # the subject is freely chosen
+                pass
+            else:
+                self.__regular_subjects_left.remove(subj)
+
+        else:  # the type of subj is subject
+            if subj.get_subject_group() == 'COMPULSORY':
+                self.__taken_regular_subjects.append(subj.get_subject_name())
+                self.__regular_subjects_left.remove(subj.get_subject_name())
+            else:
+                self.__planned_additional.finish_subject(subj)
+
     def finish_subject(self, subj):
-        if subj.get_subject_group() == 'COMPULSORY':
-            self.__taken_regular_subjects.append(subj)
-            self.__subjects_left.remove(subj)
-        else:
-            self.__planned_additional.finish_subject(subj)
+        try:
+            if type(subj) is str:
+                self.__taken_regular_subjects.index(subj)
+            else:  # it is subject
+                self.__taken_regular_subjects.index(subj.get_subject_name())
+        except ValueError or TypeError:  # the subject is yet to be taken
+            self.__util_finish_subject(subj)
 
     def can_graduate(self):
-        return self.__semester >= 7 and self.__subjects_left == [] and self.__planned_additional.everything_is_cleared()
+        return self.__semester >= 7 and self.__regular_subjects_left == [] and \
+               self.__planned_additional.everything_is_cleared()
 # TODO add read/write from files
 
 
-# TODO ADD tests for class study_plan. Class Schedule
+# TODO Class Schedule
