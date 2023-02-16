@@ -2,7 +2,7 @@ import unittest
 import rating
 import subject
 import study_plan
-
+import schedule
 
 class RatingTests(unittest.TestCase):
     """Test how well rating handles different lists"""
@@ -771,6 +771,51 @@ class TestStudyPlan(unittest.TestCase):
                                                                                      'REQUIRED_CHOSEN': 0, 'FREELY': 0},
                                        0)
         self.assertFalse(my_plan.can_graduate())
+
+
+class TestViewedSubject(unittest.TestCase):
+    """Tests for the Viewedsubject class. As it is trivial they will be short and self-explanatory."""
+    def test_basic_viewed_subject(self):
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                              {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 3)
+        self.assertEqual(operations_research.get_background_color(), 'white')
+        self.assertEqual(operations_research.get_font_color(), 'black')
+        self.assertEqual(operations_research.get_priority(), 3)
+
+    def test_increment_priority(self):
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 3)
+        self.assertEqual(operations_research.get_priority(), 3)
+        operations_research.increment_priority()
+        self.assertEqual(operations_research.get_priority(), 4)
+
+    def test_decrement_priority_basic(self):
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 3)
+        self.assertEqual(operations_research.get_priority(), 3)
+        operations_research.decrement_priority()
+        self.assertEqual(operations_research.get_priority(), 2)
+
+    def test_decrement_priority_extremal(self):
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 0)
+        self.assertEqual(operations_research.get_priority(), 0)
+        operations_research.decrement_priority()
+        self.assertEqual(operations_research.get_priority(), 0)
+
+    def test_compare_subject_priorities(self):
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 0)
+        intro_to_python = schedule.ViewedSubject('Introduction to Python programming', 'CSF', 'Victor Bechev', 5, 'L',
+                                          {'Wednesday': (16, 20)}, 'FHF-210', {'SI': 2}, 'WHITE', 'BLACK', 10)
+        algebra = schedule.ViewedSubject('Algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5, 'L', {'Monday': (16, 19)},
+                                         'FHF-210', {'ALL': 1}, 'WHITE', 'BLACK', 10, 11,
+                                         'Mnogo e pich, toq Tabakov be :)')
+        self.assertLess(operations_research, intro_to_python)
+        self.assertLessEqual(intro_to_python, algebra)
+        self.assertGreaterEqual(intro_to_python, algebra)
+        self.assertEqual(intro_to_python, algebra)
+        self.assertGreater(algebra, operations_research)
 
 
 if __name__ == '__main__':
