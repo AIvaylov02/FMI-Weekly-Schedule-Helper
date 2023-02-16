@@ -145,7 +145,9 @@ class Subject:
         self.__study_times = None
         self.set_study_times(study_times)
         self.__faculty, self.__room = self.__parse_raw_place(raw_place)
-        self.__subj_rating = rating.Rating(ratings)
+        self.__subj_rating = rating.Rating([])
+        if ratings is not None:
+            self.__subj_rating = rating.Rating(ratings)
         if self.__subj_rating.get_average_rating() < 1 or self.__subj_rating.get_average_rating() > 10:
             raise InvalidRating
         self.__can_be_signed_up_by_table = {}

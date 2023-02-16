@@ -1,5 +1,81 @@
 import unittest
+import rating
 import subject
+import study_plan
+
+class RatingTests(unittest.TestCase):
+    """Test how well rating handles different lists"""
+
+    def test_basic_rating(self):
+        example_grades = [5, 7, 8]
+        my_rating = rating.Rating(example_grades)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), len(example_grades))
+        self.assertEqual(my_rating.get_average_rating(), sum(example_grades) / len(example_grades))
+
+    def test_empty_list(self):
+        example_grades = []
+        my_rating = rating.Rating(example_grades)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), 0)
+        self.assertEqual(my_rating.get_average_rating(), 1)
+
+    def test_invalid_scores_only(self):
+        example_grades = [-5, -1, 11, 23]
+        my_rating = rating.Rating(example_grades)
+        self.assertListEqual(my_rating.get_scores(), [])
+        self.assertEqual(my_rating.get_count(), 0)
+        self.assertEqual(my_rating.get_average_rating(), 1)
+
+    def test_mixed_scores(self):
+        example_grades = [-5, -1, 0, 5, 10,  11, 23]  # The only valid ones are 5 and 10
+        my_rating = rating.Rating(example_grades)
+        self.assertListEqual(my_rating.get_scores(), [5, 10])
+        self.assertEqual(my_rating.get_count(), 2)
+        self.assertEqual(my_rating.get_average_rating(), 7.5)
+
+    def test_invalid_score_adding(self):
+        example_grades = [5, 7, 8]
+        inv_score = -5
+        my_rating = rating.Rating(example_grades)
+        my_rating.add_score(inv_score)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), len(example_grades))
+        self.assertEqual(my_rating.get_average_rating(), sum(example_grades) / len(example_grades))
+
+    """Test the operation of adding a new score to the active set"""
+
+    def test_valid_score_to_add(self):
+        example_grades = [5, 7, 8]
+        valid_score = 4
+        my_rating = rating.Rating(example_grades)
+        my_rating.add_score(valid_score)
+        example_grades.append(valid_score)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), len(example_grades))
+        self.assertEqual(my_rating.get_average_rating(), sum(example_grades) / len(example_grades))
+
+    def test_correct_rounding_downwards(self):
+        # Notice the system usually works with int scores only, for testing we will use doubles also
+        example_grades = [3, 3, 4, 4, 5, 5, 6, 4, 4, 5, 5, 6, 6]  # average_rating of 4.62, should give 60.06 when multiplied
+        valid_score = 4
+        my_rating = rating.Rating(example_grades)
+        my_rating.add_score(valid_score)  # 64.06 should be rounded to 64
+        example_grades.append(valid_score)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), len(example_grades))
+        self.assertEqual(my_rating.get_average_rating() * len(example_grades), 64)
+
+    def test_correct_rounding_upwards(self):
+        example_grades = [3, 3, 4, 4, 5, 5, 6, 4, 4, 5, 5, 6, 6, 1.8]  # average_rating of 4.414, should give 61.796 when multiplied
+        valid_score = 4
+        my_rating = rating.Rating(example_grades)
+        my_rating.add_score(valid_score)  # 65.796 should be rounded to 66
+        example_grades.append(valid_score)
+        self.assertListEqual(my_rating.get_scores(), example_grades)
+        self.assertEqual(my_rating.get_count(), len(example_grades))
+        self.assertEqual(my_rating.get_average_rating() * len(example_grades), 66)
+
 
 
 class TestSubjectExceptions(unittest.TestCase):
@@ -256,6 +332,125 @@ class TestSubject(unittest.TestCase):
                                    {'ALL': 1},  1, '18-ti proizvodni ne mojem da namirame!')
         calculus.remove_study_time_by_day('Wednesday')
         self.assertDictEqual(calculus.get_study_times(), {'Monday': (16, 19)})
+
+
+class SelectableSubjects(unittest.TestCase):
+    """TEST:
+    self.__required_selectable_subjects = required_selectable_subjects
+        # Count a category as passed if its value is equal or less than 0
+        self.__freely_chosen_subjects_categories = freely_chosen_subjects_table
+        self.__left_credits = min_credits_needed
+        self.__person_finished_subjects = person_finished_subjects  # Lists of subjects the person has finished
+            def __transfer_category_point(self, child_category, parent_category):
+            def finish_subject(self, subj):"""
+    def test_correct_selectable_subject(self):
+        example_tuple = 'Operations Research', 'Numerical Analysis'
+        example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
+                        'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}
+        my_plan = study_plan.SelectableSubjects(example_tuple, example_dict, 62)
+        self.assertTupleEqual(my_plan.get_required_subject(), example_tuple)
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 62)
+
+    def test_clearance_of_same_subject(self):
+        example_tuple = 'Operations Research', 'Numerical Analysis'
+        example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
+                        'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}
+        my_plan = study_plan.SelectableSubjects(example_tuple, example_dict, 62, {'Operations Research': 5})
+        operations_research = subject.Subject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                              {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2})
+        my_plan.finish_subject(operations_research)  # The subject has already been done, don't change anything
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 62)
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {'Operations Research': 5})
+
+    def test_correct_subject_finish(self):
+        example_tuple = 'Operations Research', 'Numerical Analysis'
+        example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
+                        'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}
+        my_plan = study_plan.SelectableSubjects(example_tuple, example_dict, 62)
+        operations_research = subject.Subject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                              {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2})
+        my_plan.finish_subject(operations_research)
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 62 - operations_research.get_ECTS_credits())
+        example_dict['REQUIRED_CHOSEN'] -= 1
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {'Operations Research': 5})
+
+    def test_transfer_of_credits(self):
+        example_tuple = 'Operations Research', 'Numerical Analysis'
+        example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 1, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
+                        'MATH': 2, 'REQUIRED_CHOSEN': 1, 'FREELY': 1}
+        my_plan = study_plan.SelectableSubjects(example_tuple, example_dict, 62)
+        dsa_2 = subject.Subject('Data structures and programming 2', 'CSC', 'Atanas Semerdzhiev', 8, 'L',
+                                              {'Monday': (12, 14)}, 'FMI-200', {'ALL': 3})
+        my_plan.finish_subject(dsa_2)
+        example_dict[dsa_2.get_subject_group()] -= 1  # category csc drops to zero
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 62 - dsa_2.get_ECTS_credits())  # 54 credits
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {dsa_2.get_subject_name(): 8})
+
+        daa_1 = subject.Subject('Design and Analysis of Algorithms 1', 'CSC', 'Minko Markov', 7, 'L',
+                                              {'Tuesday': (14, 16)}, 'FHF-210', {'KN': 3})
+        my_plan.finish_subject(daa_1)
+        example_dict['COMP'] -= 1  # although csc is decreased, it is already cleared, so clear comp category
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 54 - daa_1.get_ECTS_credits())  # 47 credits
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {dsa_2.get_subject_name(): 8,
+                                                                       daa_1.get_subject_name(): 7})
+
+        intro_to_python = subject.Subject('Introduction to Python programming', 'CSF', 'Victor Bechev', 5, 'L',
+                                {'Wednesday': (16, 20)}, 'FHF-210', {'SI': 2})
+        my_plan.finish_subject(intro_to_python)
+        example_dict[intro_to_python.get_subject_group()] -= 1  # clear CSF category
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 47 - intro_to_python.get_ECTS_credits())  # 42 credits
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {dsa_2.get_subject_name(): 8,
+                             daa_1.get_subject_name(): 7, intro_to_python.get_subject_name(): 5})
+
+        current_java_technologies = subject.Subject('Current Java Technologies', 'CSF', 'Stoyan Velev', 8, 'L',
+                                {'Wednesday': (16, 20)}, 'FMI-325', {'SI': 2})
+        my_plan.finish_subject(current_java_technologies)
+        example_dict['FREELY'] -= 1  # the comp category is already cleared, go onto the freely category
+        self.assertEqual(my_plan.get_remaining_credits_balance(), 42 - current_java_technologies.get_ECTS_credits())  # 34 credits
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertDictEqual(my_plan.get_persons_finished_subjects(), {dsa_2.get_subject_name(): 8,
+                                                                       daa_1.get_subject_name(): 7,
+                                                                       intro_to_python.get_subject_name(): 5,
+                                                                       current_java_technologies.get_subject_name(): 8})
+        self.assertFalse(my_plan.everything_is_cleared())  # we still have to take up maths and comp practicums
+
+    def test_possible_clearance_of_table(self):
+        example_tuple = 'Operations Research', 'Numerical Analysis'
+        example_dict = {'CSF': 0, 'CSC': 0, 'COMP': 1, 'CSP': 0, 'PURE_MATH': 0, 'APM': 0,
+                        'MATH': 0, 'REQUIRED_CHOSEN': 0, 'FREELY': 1}
+        my_plan = study_plan.SelectableSubjects(example_tuple, example_dict, 13)
+        daa_1 = subject.Subject('Design and Analysis of Algorithms 1', 'CSC', 'Minko Markov', 7, 'L',
+                                {'Tuesday': (14, 16)}, 'FHF-210', {'KN': 3})
+        my_plan.finish_subject(daa_1)
+        example_dict['COMP'] -= 1  # FREELY stands together with 6 credits
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertFalse(my_plan.every_category_is_cleared())
+        self.assertFalse(my_plan.get_remaining_credits_balance() < 0)
+        self.assertFalse(my_plan.everything_is_cleared())
+
+        intro_to_python = subject.Subject('Introduction to Python programming', 'CSF', 'Victor Bechev', 5, 'L',
+                                          {'Wednesday': (16, 20)}, 'FHF-210', {'SI': 2})
+        my_plan.finish_subject(intro_to_python)
+        example_dict['FREELY'] -= 1  # no categories left but still 1 credit
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertTrue(my_plan.every_category_is_cleared())
+        self.assertFalse(my_plan.get_remaining_credits_balance() < 0)
+        self.assertFalse(my_plan.everything_is_cleared())
+
+        nuclear_physics = subject.Subject('Nuclear Physics', 'APM', 'Albert Einstein', 10, 'L',
+                                          {'Wednesday': (16, 20)}, 'FZF-32', {'SI': 4})
+        my_plan.finish_subject(nuclear_physics)
+        example_dict['FREELY'] -= 1  # everything is cleared
+        self.assertDictEqual(my_plan.get_freely_chosen_subjects_categories(), example_dict)
+        self.assertTrue(my_plan.every_category_is_cleared())
+        self.assertTrue(my_plan.get_remaining_credits_balance() < 0)
+        self.assertTrue(my_plan.everything_is_cleared())
 
 
 if __name__ == '__main__':
