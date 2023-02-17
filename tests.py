@@ -4,6 +4,7 @@ import subject
 import study_plan
 import schedule
 
+
 class RatingTests(unittest.TestCase):
     """Test how well rating handles different lists"""
 
@@ -136,6 +137,7 @@ class TestSubject(unittest.TestCase):
 
     """TEST_Subject_NAME"""
     """Valid name should consist of a given set of chars, together with first letter being capital"""
+
     def test_subject_name_small_letters_only(self):
         self.assertRaises(subject.InvalidSubjectName, subject.Subject, 'algebra', 'COMPULSORY', 'Konstantin Tabakov',
                           6.5, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
@@ -145,12 +147,14 @@ class TestSubject(unittest.TestCase):
                           6.5, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
 
     """TEST_Subject_Group"""
+
     def test_invalid_group(self):
         self.assertRaises(subject.InvalidSubjectGroup, subject.Subject, 'Algebra', 'random123', 'Konstantin Tabakov',
                           6.5, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
 
     """TEST_Lecturer_NAME"""
     """Valid name should be of 2 names, each starting with caps and containing other small letters only"""
+
     def test_invalid_person_small_letters(self):
         self.assertRaises(subject.InvalidPersonName, subject.Subject, 'Algebra', 'COMPULSORY', 'konstantin Tabakov',
                           6.5, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
@@ -168,6 +172,7 @@ class TestSubject(unittest.TestCase):
                           6.5, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
 
     """TEST CREDITS. They should be between 1 and 10"""
+
     def test_negative_credits(self):
         self.assertRaises(subject.InvalidECTSCredits, subject.Subject, 'Algebra', 'COMPULSORY', 'Konstantin Tabakov',
                           -3, 'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
@@ -178,6 +183,7 @@ class TestSubject(unittest.TestCase):
                           'Mnogo e pich, toq Tabakov be :)')
 
     """Test days. Each day should be a valid English day"""
+
     def test_invalid_day(self):
         self.assertRaises(subject.InvalidWeekday, subject.Subject, 'Algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5,
                           'L', {'Ponedelnik': (16, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
@@ -188,6 +194,7 @@ class TestSubject(unittest.TestCase):
                           'Mnogo e pich, toq Tabakov be :)')
 
     """Check if it follows the rules of the hours"""
+
     def test_too_early_start_hour(self):
         self.assertRaises(subject.InvalidWorkHour, subject.Subject, 'Algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5,
                           'L', {'Monday': (6, 9)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
@@ -209,6 +216,7 @@ class TestSubject(unittest.TestCase):
                           'L', {'Monday': (12, 19)}, 'FHF-210', {'ALL': 1}, 10, 'Mnogo e pich, toq Tabakov be :)')
 
     """Continuation of the rating tests from the start lines"""
+
     def test_rating_too_small(self):
         my_subject = subject.Subject('Algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5,
                                      'L', {'Monday': (16, 19)}, 'FHF-210', {'ALL': 1}, 0,
@@ -224,6 +232,7 @@ class TestSubject(unittest.TestCase):
                          1)  # by default if invalid it will be set to 1
 
     """Tests for behaviour on who can sign up the subject"""
+
     def test_add_speciality_course_of_signing_up_table(self):
         calculus = subject.Subject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)}, 'FMI-325',
                                    {'SI': 1}, 1, 'DIS + politika = klasika')
@@ -364,6 +373,7 @@ class TestSelectableSubjects(unittest.TestCase):
     """Tests for the class of table for choosable subjects"""
 
     """The subject_table is correct and so it should be parsed successfully"""
+
     def test_correct_selectable_subject(self):
         example_tuple = 'Operations Research', 'Numerical Analysis'
         example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
@@ -374,6 +384,7 @@ class TestSelectableSubjects(unittest.TestCase):
         self.assertEqual(my_plan.get_remaining_credits_balance(), 62)
 
     """Test to prove, that same subject clearing earns no extra benefits"""
+
     def test_clearance_of_same_subject(self):
         example_tuple = 'Operations Research', 'Numerical Analysis'
         example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
@@ -387,6 +398,7 @@ class TestSelectableSubjects(unittest.TestCase):
         self.assertDictEqual(my_plan.get_persons_finished_subjects(), {'Operations Research': 5})
 
     """Test to prove that finishing subject works correctly and the changes are directly accepted"""
+
     def test_correct_subject_finish(self):
         example_tuple = 'Operations Research', 'Numerical Analysis'
         example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 4, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
@@ -403,6 +415,7 @@ class TestSelectableSubjects(unittest.TestCase):
     """Test to prove the correctness of transfer credits func, which works in the background and makes sure that each
     category given wanted values will give sufficient table. In the example it is throughoutly explained how the 
     rounding works."""
+
     def test_transfer_of_credits(self):
         example_tuple = 'Operations Research', 'Numerical Analysis'
         example_dict = {'CSF': 1, 'CSC': 1, 'COMP': 1, 'CSP': 2, 'PURE_MATH': 1, 'APM': 0,
@@ -450,6 +463,7 @@ class TestSelectableSubjects(unittest.TestCase):
 
     """Test to continue on the finish subject dilemma, this time by allowing the user to know when he may successfully
     graduate."""
+
     def test_possible_clearance_of_table(self):
         example_tuple = 'Operations Research', 'Numerical Analysis'
         example_dict = {'CSF': 0, 'CSC': 0, 'COMP': 1, 'CSP': 0, 'PURE_MATH': 0, 'APM': 0,
@@ -487,6 +501,7 @@ class TestStudyPlan(unittest.TestCase):
     """Tests to confirm the correctness of study_plan"""
 
     """Test plans by initialisation"""
+
     def test_brand_new_plan(self):
         my_specs = 'Software Engineering'
         semester = 1
@@ -522,6 +537,7 @@ class TestStudyPlan(unittest.TestCase):
                                                        'Object-oriented programming'])
 
     """Test invalid specialties or semesters"""
+
     def test_invalid_speciality(self):
         my_specs = 'Informatics'
         semester = 2
@@ -533,6 +549,7 @@ class TestStudyPlan(unittest.TestCase):
         self.assertRaises(subject.InvalidSpeciality, study_plan.StudyPlan, my_specs, semester)
 
     """Advance semester check ups"""
+
     def test_advance_semester_basic(self):
         my_specs = 'Software Engineering'
         semester = 1
@@ -571,6 +588,7 @@ class TestStudyPlan(unittest.TestCase):
 
     """tests with subject objects"""
     """FINISH_SUBJECT tests"""
+
     def test_check_already_finished_regular_subject(self):
         my_specs = 'Software Engineering'
         semester = 1
@@ -626,6 +644,7 @@ class TestStudyPlan(unittest.TestCase):
         self.assertListEqual(my_plan.taken_subjects(), [])
 
     """CAN_GRADUATE Checkups"""
+
     def test_valid_graduation(self):
         my_specs = 'Software Engineering'
         semester = 7
@@ -775,9 +794,10 @@ class TestStudyPlan(unittest.TestCase):
 
 class TestViewedSubject(unittest.TestCase):
     """Tests for the Viewedsubject class. As it is trivial they will be short and self-explanatory."""
+
     def test_basic_viewed_subject(self):
         operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
-                                              {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 3)
+                                                     {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 3)
         self.assertEqual(operations_research.get_background_color(), 'white')
         self.assertEqual(operations_research.get_font_color(), 'black')
         self.assertEqual(operations_research.get_priority(), 3)
@@ -807,15 +827,266 @@ class TestViewedSubject(unittest.TestCase):
         operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
                                                      {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE', 'BLACK', 0)
         intro_to_python = schedule.ViewedSubject('Introduction to Python programming', 'CSF', 'Victor Bechev', 5, 'L',
-                                          {'Wednesday': (16, 20)}, 'FHF-210', {'SI': 2}, 'WHITE', 'BLACK', 10)
+                                                 {'Wednesday': (16, 20)}, 'FHF-210', {'SI': 2}, 'WHITE', 'BLACK', 10)
         algebra = schedule.ViewedSubject('Algebra', 'COMPULSORY', 'Konstantin Tabakov', 6.5, 'L', {'Monday': (16, 19)},
                                          'FHF-210', {'ALL': 1}, 'WHITE', 'BLACK', 10, 11,
                                          'Mnogo e pich, toq Tabakov be :)')
         self.assertLess(operations_research, intro_to_python)
         self.assertLessEqual(intro_to_python, algebra)
         self.assertGreaterEqual(intro_to_python, algebra)
-        self.assertEqual(intro_to_python, algebra)
         self.assertGreater(algebra, operations_research)
+
+
+class TestSchedule(unittest.TestCase):
+
+    def test_basic_schedule(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        self.assertDictEqual(my_plan.get_weekly_table(), {'Monday': {}, 'Tuesday': {}, 'Wednesday': {}, 'Thursday': {},
+                                                          'Friday': {}, 'Saturday': {}, 'Sunday': {}})
+
+    def test_basic_time_business(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        my_plan.add_subject(calculus)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 10), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 9), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])  # subjects starts here
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 14), [])  # subject end here
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Thursday', 13), [])
+
+    def test_basic_compulory_add(self):  # subject.add in initializer uses this function
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+
+    def test_basic_compulsory_removal(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan.remove_subject(calculus)  # you cannot remove a compulsory subject, you can only finish it
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+
+    def test_basic_compulsory_finish(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan.finish_subject(calculus)  # you cannot remove a compulsory subject, you can only finish it
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [])
+
+    def test_basic_choosable_add(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Tuesday': (15, 17)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 3)
+        my_plan.add_subject(operations_research)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 15), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 16), [operations_research])
+
+    def test_basic_choosable_removal(self):
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Tuesday': (15, 17)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 3)
+        my_plan.add_subject(operations_research)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 15), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 16), [operations_research])
+        my_plan.remove_subject(operations_research)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 15), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 16), [])
+
+    def test_compulsory_with_chooseable_without_overlaps(self):
+        """Compulsory then chooseable with no overlaps"""
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Wednesday': (12, 14)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 3)
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan.add_subject(operations_research)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+
+    def test_compulsory_with_chooseable_with_overlaps(self):
+        """Compulsory with chooseable with overlaps"""
+        overlaps = 'True'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Wednesday': (12, 14)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 3)
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan.add_subject(operations_research)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus, operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus, operations_research])
+
+    def test_max_chooseable_already_in(self):
+        def test_compulsory_with_chooseable_with_overlaps(self):
+            """Test placing more chooseables then allowed(5 is max allowed at a time)"""
+            overlaps = 'True'
+            my_plan = schedule.Schedule(overlaps)
+            operations_research_one = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                             {'Monday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                             'BLACK', 3)
+            operations_research_two = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                             {'Tuesday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                             'BLACK', 3)
+            operations_research_three = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                               {'Wednesday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                               'BLACK', 3)
+            operations_research_four = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                              {'Thursday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                              'BLACK', 3)
+            operations_research_five = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                              {'Friday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                              'BLACK', 3)
+            operations_research_too_much = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                              {'Saturday': (12, 14)}, 'FMI-200', {'ALL': 2}, 'WHITE',
+                                                              'BLACK', 3)
+            my_plan.add_subject(operations_research_one)  # time interval is [start, end)
+            my_plan.add_subject(operations_research_two)
+            my_plan.add_subject(operations_research_three)
+            my_plan.add_subject(operations_research_four)
+            my_plan.add_subject(operations_research_five)
+            my_plan.add_subject(operations_research_too_much)  # if its valid addition, it will add interval in Saturday
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [operations_research_one])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [operations_research_one])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 12), [operations_research_two])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Tuesday', 13), [operations_research_two])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [operations_research_three])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [operations_research_three])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Thursday', 12), [operations_research_four])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Thursday', 13), [operations_research_four])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Friday', 12), [operations_research_five])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Friday', 13), [operations_research_five])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [])
+            self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [])
+
+    def test_generate_programme_without_overlaps(self):
+        """No overlaps are allowed. The subject which gets in the programme first(usually a compulsory one) will
+        be prioritised over higher priority subjects."""
+        overlaps = 'False'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Wednesday': (12, 14)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 5)
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        my_plan.add_subject(operations_research)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan_printable = my_plan.generate_final_study_table()
+        comparor = []
+        for i in range(7):
+            comparor.append([])  # creates a matrix of 7 rows(days)
+            for j in range(17):  # offset from 7 to 24
+                comparor[i].append('EMPTY')
+        for i in range(3, 7): # set dis table
+            comparor[2][i] = calculus
+        self.assertListEqual(my_plan_printable, comparor)
+
+    def test_generate_programme_with_overlaps(self):
+        """Overlaps are allowed. The subject which has the highest priority will be put in front of older subject. This
+        usually means that chooseable may be chosen over compulsory (and put up earlier) subjects."""
+        overlaps = 'True'
+        my_plan = schedule.Schedule(overlaps)
+        calculus = schedule.ViewedSubject('DIS', 'COMPULSORY', 'Vladimir Babev', 8, 'L', {'Wednesday': (10, 14)},
+                                          'FMI-325',
+                                          {'KN': 1}, 'WHITE', 'BLACK', 3, 1, 'DIS + politika = klasika')
+        operations_research = schedule.ViewedSubject('Operations Research', 'APM', 'Nadq Zlateva', 5, 'L',
+                                                     {'Monday': (12, 14), 'Wednesday': (12, 14)}, 'FMI-200', {'ALL': 2},
+                                                     'WHITE', 'BLACK', 6)
+        my_plan.add_subject(calculus)  # time interval is [start, end)
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus])
+        my_plan.add_subject(operations_research)
+        # final study table
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 12), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Monday', 13), [operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 10), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 11), [calculus])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 12), [calculus, operations_research])
+        self.assertListEqual(my_plan.get_subjects_of_given_time('Wednesday', 13), [calculus, operations_research])
+        # the printable should consist of 2 ors in monday, 2 disses from 10 to 12 in wednesday and ors after it
+        my_plan_printable = my_plan.generate_final_study_table()
+        comparor = []
+        for i in range(7):
+            comparor.append([])  # creates a matrix of 7 rows(days)
+            for j in range(17):  # offset from 7 to 24
+                comparor[i].append('EMPTY')
+        comparor[0][5] = operations_research
+        comparor[0][6] = operations_research
+        comparor[2][3] = calculus
+        comparor[2][4] = calculus
+        comparor[2][5] = operations_research
+        comparor[2][6] = operations_research
+        self.assertListEqual(my_plan_printable, comparor)
 
 
 if __name__ == '__main__':
