@@ -117,6 +117,10 @@ DefaultRegularPlan_KN = (
 )
 
 
+def is_valid_semester(semester, plan):
+    return len(plan) >= semester > 0
+
+
 class StudyPlan:
     def __init__(self, speciality, semester, taken_regular_subjects=None, freely_chosen_subjects_table=None,
                  min_credits_needed=None, taken_free_subjects=None):
@@ -168,7 +172,7 @@ class StudyPlan:
         if taken_regular_subjects is not None:
             self.__taken_regular_subjects = taken_regular_subjects
         self.__regular_subjects_left = []  # List of compulsory subjects left to be taken
-        if semester > len(self.__planned_regular_all) or semester < 0:
+        if not is_valid_semester(self.__semester, self.__planned_regular_all):
             raise subject.InvalidSpeciality
 
         for curr_semester in range(semester):

@@ -276,7 +276,80 @@ class Subject:
             self.__reviews = []
         self.__reviews.append(review)
 
+    def save_info_to_file(self):
+        file_name = self.__name + '.txt'
+        with open(file_name, 'w') as w_file:
+            w_file.write('Name, Group, Lecturer, ECTS credits, lecture_type\n')
+            w_file.write(self.__name + ',' + self.__group + ',' + self.__lecturer + ',' + self.__ECTS_credits + ',')
+            w_file.write(self.__lecture_type + '\n')
+            for key, item in self.__study_times.items():
+                w_file.write(key + ',' + item + '\n')
+            w_file.write(self.__faculty + '-' + self.__room)
+            for key, item in self.__can_be_signed_up_by_table.items():
+                w_file.write(key + ',' + item + '\n')
+            for review in self.__reviews:
+                w_file.write(review + '\n')
 
-""" TODO : We are ready to implement reading and writing from/to files here. Maybe after implementing class 
-Timetable and Study_Plan, we should do this. For know we should focus on those 2 other classes as well as class User,
-who should be trivial. GUI also remains to be done."""
+
+    def get_info_from_file(self, name):
+        file_name = name + '.txt'
+        with open(file_name, 'r') as r_file:
+            r_file.readline() # skip the first line
+            line = r_file.readline()
+            raw_input = line.split(',')
+            name, group, lecturer, ECTS_credits, lecture_type = raw_input
+            study_times = {}
+            line = r_file.readline()
+            while line[0] != 'F':  # all faculties start with f
+                raw_input = line.split(',')
+                day, start, end = raw_input
+                start = int(start)
+                end = int(end)
+                study_times[day] = start, end
+                line = r_file.readline()
+            raw_place = line
+            line = r_file.readline()
+            can_be_signed_by_table = {}
+            while line[0] not in ('A', 'S', 'C', 'I'):  # all the possible valid readings from student groups
+                raw_input = line.split(',')
+                speciality, course = raw_input
+                course = int(course)
+                can_be_signed_by_table[speciality] = course
+                line = r_file.readline()
+            reviews = []
+            while line:
+                line = r_file.readline()
+                reviews.append(line)
+        return name, group, lecturer, ECTS_credits, lecture_type, study_times, raw_place, can_be_signed_by_table, reviews
+
+
+def get_info_from_file(name):
+    file_name = name + '.txt'
+    with open(file_name, 'r') as r_file:
+        r_file.readline() # skip the first line
+        line = r_file.readline()
+        raw_input = line.split(',')
+        name, group, lecturer, ECTS_credits, lecture_type = raw_input
+        study_times = {}
+        line = r_file.readline()
+        while line[0] != 'F':  # all faculties start with f
+            raw_input = line.split(',')
+            day, start, end = raw_input
+            start = int(start)
+            end = int(end)
+            study_times[day] = start, end
+        line = r_file.readline()
+        raw_place = line
+        line = r_file.readline()
+        can_be_signed_by_table = {}
+        while line[0] not in ('A', 'S', 'C', 'I'):  # all the possible valid readings from student groups
+            raw_input = line.split(',')
+            speciality, course = raw_input
+            course = int(course)
+            can_be_signed_by_table[speciality] = course
+            line = r_file.readline()
+        reviews = []
+        while line:
+            line = r_file.readline()
+            reviews.append(line)
+        return name, group, lecturer, ECTS_credits, lecture_type, study_times, raw_place, can_be_signed_by_table, reviews
